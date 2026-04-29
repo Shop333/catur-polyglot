@@ -58,7 +58,6 @@
     <div id="info">
         <p id="status">Pilih bidak untuk memulai</p>
     </div>
-
     <script>
         const boardElement = document.getElementById('board');
         const statusElement = document.getElementById('status');
@@ -99,7 +98,7 @@
         }
 
         async function handleSquareClick(r, c) {
-            const targetPiece = pieces[r][c]; // Bidak di kotak tujuan
+            const targetPiece = pieces[r][c];
 
             if (!selectedSquare) {
                 if (targetPiece) {
@@ -116,8 +115,13 @@
                 }
 
                 try {
-                    // SEKARANG MENGIRIM PARAMETER 'target' KE PYTHON
-                    const url = `http://localhost:5000/validate?piece=${selectedSquare.piece}&x1=${selectedSquare.r}&y1=${selectedSquare.c}&x2=${r}&y2=${c}&target=${targetPiece || ' '}`;
+                    // --- PERBAIKAN LOGIKA: KONVERSI PAPAN KE STRING ---
+                    // Mengubah array 2D menjadi string 64 karakter (kosong jadi spasi)
+                    const boardString = pieces.flat().map(p => p === '' ? ' ' : p).join('');
+
+                    // Kirim semua data: bidak, koordinat, target, dan kondisi papan
+                    const url = `http://localhost:5000/validate?piece=${selectedSquare.piece}&x1=${selectedSquare.r}&y1=${selectedSquare.c}&x2=${r}&y2=${c}&target=${targetPiece || ' '}&board=${encodeURIComponent(boardString)}`;
+                    
                     const res = await fetch(url);
                     const data = await res.json();
 
@@ -126,7 +130,7 @@
                         pieces[selectedSquare.r][selectedSquare.c] = '';
                         statusElement.innerText = targetPiece ? `Berhasil memakan ${pieceIcons[targetPiece]}!` : `Gerakan Berhasil!`;
                     } else {
-                        statusElement.innerText = `Ditolak Engine C! Gerakan ilegal.`;
+                        statusElement.innerText = `Ilegal! Engine C melarang gerakan ini.`;
                     }
                 } catch (err) {
                     statusElement.innerText = "Gagal terhubung ke Backend Python!";
@@ -139,5 +143,6 @@
 
         renderBoard();
     </script>
+
 </body>
 </html>
