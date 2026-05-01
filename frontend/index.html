@@ -134,16 +134,38 @@
                     const res = await fetch(url);
                     const data = await res.json();
 
-                    if (data.valid) {
+                                        if (data.valid) {
+                        // Update posisi bidak di papan
                         pieces[r][c] = selectedSquare.piece;
                         pieces[selectedSquare.r][selectedSquare.c] = '';
                         
-                        // Ganti giliran setelah gerak valid
+                        // Siapkan data papan terbaru untuk cek skak
+                        const boardString = pieces.flat().map(p => p === '' ? ' ' : p).join('');
+                        
+                        // Ganti giliran dulu untuk mengecek apakah raja pemain berikutnya sedang kena skak
                         turn = turn === 'W' ? 'B' : 'W';
-                        statusElement.innerText = `Berhasil! Giliran: ${turn === 'W' ? 'PUTIH' : 'HITAM'}`;
+
+                        // PANGGIL ENDPOINT CEK SKAK
+                        try {
+                            const checkRes = await fetch(`http://localhost:5000/check_check?side=${turn}&board=${encodeURIComponent(boardString)}`);
+                            const checkData = await checkRes.json();
+
+                            if (checkData.in_check) {
+                                statusElement.innerText = `⚠️ SKAK! Giliran: ${turn === 'W' ? 'PUTIH' : 'HITAM'}`;
+                                statusElement.style.color = "#ff4444"; // Ubah warna jadi merah kalau skak
+                            } else {
+                                statusElement.innerText = `Berhasil! Giliran: ${turn === 'W' ? 'PUTIH' : 'HITAM'}`;
+                                statusElement.style.color = "white";
+                            }
+                        } catch (e) {
+                            console.error("Gagal cek skak:", e);
+                            statusElement.innerText = `Berhasil! Giliran: ${turn === 'W' ? 'PUTIH' : 'HITAM'}`;
+                        }
                     } else {
                         statusElement.innerText = `Ilegal! Engine C melarang itu.`;
+                        statusElement.style.color = "#ffbb33";
                     }
+
                 } catch (err) {
                     statusElement.innerText = "Error: Cek Backend Python kamu!";
                 }
