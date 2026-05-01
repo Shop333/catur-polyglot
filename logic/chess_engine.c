@@ -26,7 +26,7 @@ int is_move_valid(char piece, int x1, int y1, int x2, int y2, char target, const
     int dx = abs(x2 - x1);
     int dy = abs(y2 - y1);
     
-    // Tidak boleh makan teman sendiri
+    // 1. Tidak boleh makan teman sendiri
     if (target != ' ') {
         if ((piece >= 'A' && piece <= 'Z') && (target >= 'A' && target <= 'Z')) return 0;
         if ((piece >= 'a' && piece <= 'z') && (target >= 'a' && target <= 'z')) return 0;
@@ -48,13 +48,21 @@ int is_move_valid(char piece, int x1, int y1, int x2, int y2, char target, const
             return 0;
         case 'K': // Raja
             return (dx <= 1 && dy <= 1);
-        case 'P': // Pion
-            if (piece == 'P') { // Putih
-                if (x1 - x2 == 1 && y1 == y2 && target == ' ') return 1; // Maju
-                if (x1 - x2 == 1 && dx == 1 && dy == 1 && target != ' ') return 1; // Makan miring
-            } else { // Hitam
-                if (x2 - x1 == 1 && y1 == y2 && target == ' ') return 1; // Maju
-                if (x2 - x1 == 1 && dx == 1 && dy == 1 && target != ' ') return 1; // Makan miring
+        case 'P': // Pion (Logika Maju 2 Kotak & Makan Miring)
+            if (piece == 'P') { // Putih (Naik)
+                // Maju 1 kotak
+                if (x1 - x2 == 1 && y1 == y2 && target == ' ') return 1;
+                // Maju 2 kotak (Syarat: Baris 6, Kotak tujuan kosong, Jalur kosong)
+                if (x1 == 6 && x1 - x2 == 2 && y1 == y2 && target == ' ' && get_at(board, 5, y1) == ' ') return 1;
+                // Makan miring
+                if (x1 - x2 == 1 && dy == 1 && target != ' ') return 1;
+            } else { // Hitam (Turun)
+                // Maju 1 kotak
+                if (x2 - x1 == 1 && y1 == y2 && target == ' ') return 1;
+                // Maju 2 kotak (Syarat: Baris 1, Kotak tujuan kosong, Jalur kosong)
+                if (x1 == 1 && x2 - x1 == 2 && y1 == y2 && target == ' ' && get_at(board, 2, y1) == ' ') return 1;
+                // Makan miring
+                if (x2 - x1 == 1 && dy == 1 && target != ' ') return 1;
             }
             return 0;
         default: return 0;
