@@ -1,78 +1,98 @@
 body { 
-    font-family: sans-serif; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    background: #222; 
+    background: #1a1a1a; 
     color: white; 
-    padding: 0 10px 50px 10px; /* Tambah padding samping agar tidak mepet di HP */
+    padding: 0 10px 50px 10px;
     margin: 0;
+    min-height: 100vh;
 }
 
 #board {
     display: grid;
-    grid-template-columns: repeat(8, 1fr); /* Pakai fraction agar fleksibel */
-    /* Ukuran responsif: 95% lebar layar di HP, maksimal 500px di Laptop */
-    width: 95vw;
-    height: 95vw;
-    max-width: 500px;
-    max-height: 500px;
+    grid-template-columns: repeat(8, 1fr); 
+    grid-template-rows: repeat(8, 1fr);
     
-    border: 5px solid #444;
+    /* Ukuran responsif */
+    width: 90vw;
+    height: 90vw;
+    max-width: 480px;
+    max-height: 480px;
+    
+    /* Penting: Pastikan tidak ada gap yang bikin garis-garis aneh */
+    gap: 0;
+    border: 4px solid #333;
     margin-top: 20px;
     user-select: none;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
 }
 
 .square {
-    /* Square akan otomatis menyesuaikan grid parent-nya */
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Ukuran font responsif: besar di laptop, pas di HP */
-    font-size: calc(5vw + 10px); 
+    /* Font size mengikuti ukuran kotak */
+    font-size: calc(8vw); 
     cursor: pointer;
-    transition: 0.1s;
+    transition: background-color 0.2s;
 }
 
-/* Batasi ukuran font maksimal di layar besar agar tidak overscale */
-@media (min-width: 600px) {
-    .square {
-        font-size: 45px;
-    }
+/* Warna Papan: Putih (Terang) */
+.white { 
+    background-color: #f0d9b5; 
+    color: #000; /* Warna bidak unicode jika perlu */
 }
 
-.white { background-color: #f0d9b5; }
-.black { background-color: #b58863; }
+/* Warna Papan: Hitam (Gelap) */
+.black { 
+    background-color: #b58863; 
+    color: #000;
+}
 
+/* Highlight saat bidak dipilih */
 .selected {
     background-color: #769656 !important;
-    box-shadow: inset 0 0 10px rgba(255,255,255,0.5);
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
 }
 
 #info { 
-    margin-top: 20px; 
+    margin-top: 25px; 
     padding: 15px; 
-    background: #333; 
-    border-radius: 8px; 
-    width: 95%; 
-    max-width: 500px; /* Samakan dengan max-width board */
+    background: #2a2a2a; 
+    border-radius: 12px; 
+    width: 90vw; 
+    max-width: 480px; 
     box-sizing: border-box;
     text-align: center;
-    border-bottom: 4px solid #f0d9b5;
-    transition: all 0.3s ease;
+    border-bottom: 5px solid #f0d9b5; /* Default awal Putih */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 #status {
     margin: 0;
-    font-size: 1.1rem;
-    font-weight: bold;
-    transition: color 0.3s ease;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 h2 { 
-    margin-top: 20px; 
+    margin-top: 30px; 
     color: #f0d9b5; 
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); 
-    font-size: 1.5rem;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7); 
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+}
+
+/* Optimalisasi Layar Laptop/Tablet */
+@media (min-width: 500px) {
+    .square {
+        font-size: 45px;
+    }
+    h2 {
+        font-size: 2.2rem;
+    }
 }
