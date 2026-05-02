@@ -5,13 +5,19 @@ body {
     align-items: center; 
     background: #222; 
     color: white; 
-    padding-bottom: 50px; 
+    padding: 0 10px 50px 10px; /* Tambah padding samping agar tidak mepet di HP */
+    margin: 0;
 }
 
 #board {
     display: grid;
-    grid-template-columns: repeat(8, 12vw);
-    grid-template-rows: repeat(8, 12vw);
+    grid-template-columns: repeat(8, 1fr); /* Pakai fraction agar fleksibel */
+    /* Ukuran responsif: 95% lebar layar di HP, maksimal 500px di Laptop */
+    width: 95vw;
+    height: 95vw;
+    max-width: 500px;
+    max-height: 500px;
+    
     border: 5px solid #444;
     margin-top: 20px;
     user-select: none;
@@ -19,14 +25,21 @@ body {
 }
 
 .square {
-    width: 12vw;
-    height: 12vw;
+    /* Square akan otomatis menyesuaikan grid parent-nya */
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 8vw;
+    /* Ukuran font responsif: besar di laptop, pas di HP */
+    font-size: calc(5vw + 10px); 
     cursor: pointer;
     transition: 0.1s;
+}
+
+/* Batasi ukuran font maksimal di layar besar agar tidak overscale */
+@media (min-width: 600px) {
+    .square {
+        font-size: 45px;
+    }
 }
 
 .white { background-color: #f0d9b5; }
@@ -42,11 +55,24 @@ body {
     padding: 15px; 
     background: #333; 
     border-radius: 8px; 
-    width: 90%; 
-    max-width: 400px;
+    width: 95%; 
+    max-width: 500px; /* Samakan dengan max-width board */
+    box-sizing: border-box;
     text-align: center;
     border-bottom: 4px solid #f0d9b5;
     transition: all 0.3s ease;
 }
 
-h2 { margin-top: 20px; color: #f0d9b5; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+#status {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+h2 { 
+    margin-top: 20px; 
+    color: #f0d9b5; 
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); 
+    font-size: 1.5rem;
+}
