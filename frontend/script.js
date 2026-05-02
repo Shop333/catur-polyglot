@@ -32,7 +32,9 @@ function renderBoard() {
             
             const piece = pieces[r][c];
             if (piece) square.innerText = pieceIcons[piece];
-            if (selectedSquare && selectedSquare.r === r && selectedSquare.c === c) square.classList.add('selected');
+            if (selectedSquare && selectedSquare.r === r && selectedSquare.c === c) {
+                square.classList.add('selected');
+            }
 
             square.onclick = () => handleSquareClick(r, c);
             boardElement.appendChild(square);
@@ -43,20 +45,27 @@ function renderBoard() {
 async function handleSquareClick(r, c) {
     const targetPiece = pieces[r][c];
 
+    // 1. Memilih bidak
     if (!selectedSquare) {
         if (targetPiece) {
             const isWhite = targetPiece === targetPiece.toUpperCase();
             if ((turn === 'W' && !isWhite) || (turn === 'B' && isWhite)) {
                 statusElement.innerText = `Bukan giliranmu!`;
+                statusElement.style.color = "#ffbb33";
                 return;
             }
             selectedSquare = { r, c, piece: targetPiece };
-            statusElement.innerText = `Gerak ke mana?`;
+            statusElement.innerText = `Memilih ${pieceIcons[targetPiece]}. Gerak ke mana?`;
+            statusElement.style.color = "white";
             renderBoard();
         }
-    } else {
+    } 
+    // 2. Mengeksekusi gerakan
+    else {
+        // Klik tempat yang sama untuk batal
         if (selectedSquare.r === r && selectedSquare.c === c) {
             selectedSquare = null;
+            statusElement.innerText = `Giliran: ${turn === 'W' ? 'PUTIH' : 'HITAM'}`;
             renderBoard();
             return;
         }
@@ -69,13 +78,14 @@ async function handleSquareClick(r, c) {
             const data = await res.json();
 
             if (data.valid) {
+                // Eksekusi langkah di UI
                 pieces[r][c] = selectedSquare.piece;
                 pieces[selectedSquare.r][selectedSquare.c] = '';
                 
                 const newBoardString = pieces.flat().map(p => p === '' ? ' ' : p).join('');
                 turn = turn === 'W' ? 'B' : 'W';
 
-                // Cek Skak
+                // Cek apakah pemain yang baru ganti giliran ini kena Skak
                 const checkRes = await fetch(`http://localhost:5000/check_check?side=${turn}&board=${encodeURIComponent(newBoardString)}`);
                 const checkData = await checkRes.json();
 
@@ -87,10 +97,13 @@ async function handleSquareClick(r, c) {
                     statusElement.style.color = "white";
                 }
             } else {
-                statusElement.innerText = `Ilegal!`;
+                // Pesan jika gerakan ilegal atau tidak menyelamatkan Raja dari skak
+                statusElement.innerText = `Ilegal! Raja terancam!`;
+                statusElement.style.color = "#ff4444";
             }
         } catch (err) {
-            statusElement.innerText = "Error Backend!";
+            statusElement.innerText = "Error: Hubungkan ke Backend!";
+            statusElement.style.color = "red";
         }
 
         selectedSquare = null;
