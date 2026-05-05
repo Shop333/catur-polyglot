@@ -1,13 +1,14 @@
 body { 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    background: #1a1a1a; 
+    background: #121212; /* Warna lebih gelap agar kontras */
     color: white; 
     padding: 0 10px 50px 10px;
     margin: 0;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 #board {
@@ -15,18 +16,19 @@ body {
     grid-template-columns: repeat(8, 1fr); 
     grid-template-rows: repeat(8, 1fr);
     
-    /* Ukuran responsif */
-    width: 90vw;
-    height: 90vw;
-    max-width: 480px;
-    max-height: 480px;
+    /* Ukuran responsif yang presisi */
+    width: 92vw;
+    height: 92vw;
+    max-width: 460px;
+    max-height: 460px;
     
-    /* Penting: Pastikan tidak ada gap yang bikin garis-garis aneh */
-    gap: 0;
-    border: 4px solid #333;
+    gap: 0; /* Menghilangkan garis antar kotak */
+    border: 6px solid #3c3c3c;
     margin-top: 20px;
     user-select: none;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    border-radius: 4px;
+    overflow: hidden; /* Agar sudut kotak tidak keluar dari border */
 }
 
 .square {
@@ -35,64 +37,76 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Font size mengikuti ukuran kotak */
-    font-size: calc(8vw); 
+    /* Font size dinamis untuk HP */
+    font-size: calc(9vw); 
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.15s ease;
 }
 
-/* Warna Papan: Putih (Terang) */
-.white { 
-    background-color: #f0d9b5; 
-    color: #000; /* Warna bidak unicode jika perlu */
-}
+/* Warna Papan Klasik */
+.white { background-color: #f0d9b5; }
+.black { background-color: #b58863; }
 
-/* Warna Papan: Hitam (Gelap) */
-.black { 
-    background-color: #b58863; 
-    color: #000;
-}
+/* Warna bidak (Unicode) agar hitam pekat */
+.square { color: #000; }
 
-/* Highlight saat bidak dipilih */
+/* Efek saat memilih bidak */
 .selected {
     background-color: #769656 !important;
-    box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+    transform: scale(0.95); /* Efek tekan */
 }
 
 #info { 
     margin-top: 25px; 
-    padding: 15px; 
-    background: #2a2a2a; 
-    border-radius: 12px; 
-    width: 90vw; 
-    max-width: 480px; 
+    padding: 18px; 
+    background: #1e1e1e; 
+    border-radius: 15px; 
+    width: 92vw; 
+    max-width: 460px; 
     box-sizing: border-box;
     text-align: center;
-    border-bottom: 5px solid #f0d9b5; /* Default awal Putih */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border-bottom: 6px solid #f0d9b5; /* Indikator giliran */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    transition: border-color 0.4s ease;
 }
 
 #status {
     margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-h2 { 
-    margin-top: 30px; 
-    color: #f0d9b5; 
-    text-shadow: 2px 2px 8px rgba(0,0,0,0.7); 
-    font-size: 1.8rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-/* Optimalisasi Layar Laptop/Tablet */
+h2 { 
+    margin-top: 25px; 
+    color: #f0d9b5; 
+    text-shadow: 0 4px 10px rgba(0,0,0,0.5); 
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+/* Responsivitas untuk Laptop/Tablet */
 @media (min-width: 500px) {
     .square {
-        font-size: 45px;
+        font-size: 42px;
+    }
+    #board {
+        width: 460px;
+        height: 460px;
     }
     h2 {
-        font-size: 2.2rem;
+        font-size: 2rem;
     }
+}
+
+/* Animasi sederhana saat bidak muncul (opsional) */
+@keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.square:not(:empty) {
+    animation: popIn 0.2s ease-out;
 }
