@@ -7,22 +7,26 @@ app = Flask(__name__)
 CORS(app)
 
 # --- KONFIGURASI PATH ---
+# Menggunakan os.path agar fleksibel di Android (Termux) maupun Windows/Linux
 dulu = os.path.dirname(os.path.abspath(__file__))
 lib_path = os.path.join(dulu, "..", "logic", "chess_engine.so")
 
 print(f"Mencoba meload file di: {lib_path}")
 
 try:
+    # Memuat Shared Library C
     chess_lib = ctypes.CDLL(lib_path)
     
-    # 1. Update ke is_move_safe (Fungsi simulasi untuk cek keamanan Raja)
+    # 1. Konfigurasi is_move_safe (Pengecekan Langkah + Simulasi Skak)
+    # Argumen: (char piece, int x1, int y1, int x2, int y2, char target, char* board)
     chess_lib.is_move_safe.argtypes = [
         ctypes.c_char, ctypes.c_int, ctypes.c_int, 
         ctypes.c_int, ctypes.c_int, ctypes.c_char, ctypes.c_char_p
     ]
     chess_lib.is_move_safe.restype = ctypes.c_int
 
-    # 2. Logika deteksi Skak (tetap ada untuk notifikasi UI)
+    # 2. Konfigurasi is_in_check (Cek status Skak global)
+    # Argumen: (char side, char* board)
     chess_lib.is_in_check.argtypes = [ctypes.c_char, ctypes.c_char_p]
     chess_lib.is_in_check.restype = ctypes.c_int
 
@@ -32,17 +36,22 @@ except OSError as e:
 
 @app.route('/validate', methods=['GET'])
 def validate_move():
+    """Endpoint untuk validasi langkah sekaligus proteksi Raja"""
     try:
+        # Ambil parameter dari request
         piece = request.args.get('piece', 'P')
         x1, y1 = int(request.args.get('x1')), int(request.args.get('y1'))
         x2, y2 = int(request.args.get('x2')), int(request.args.get('y2'))
+        
+        # Penanganan khusus target kosong agar tidak error di library C
         target = request.args.get('target', ' ')
-        if not target or target == '': target = ' '
+        if not target or target.strip() == '':
+            target = ' '
         
         board_str = request.args.get('board', ' ' * 64)
         
-        # Panggil is_move_safe, bukan is_move_valid
-        # Ini akan otomatis menolak gerakan yang membiarkan Raja kena skak
+        # Eksekusi fungsi safety check dari C
+        # Fungsi ini akan me-return 0 jika langkah fisik salah ATAU jika langkah membiarkan Raja diskak
         is_valid = chess_lib.is_move_safe(
             piece.encode('utf-8'), 
             x1, y1, x2, y2, 
@@ -55,12 +64,14 @@ def validate_move():
             "valid": bool(is_valid)
         })
     except Exception as e:
+        print(f"Error validate: {e}")
         return jsonify({"status": "error", "message": str(e)}), 400
 
 @app.route('/check_check', methods=['GET'])
 def check_status():
+    """Endpoint untuk mengecek apakah posisi saat ini sedang Skak (untuk UI)"""
     try:
-        side = request.args.get('side', 'W') 
+        side = request.args.get('side', 'W') # 'W' atau 'B'
         board_str = request.args.get('board', ' ' * 64)
         
         in_check = chess_lib.is_in_check(
@@ -72,7 +83,9 @@ def check_status():
             "in_check": bool(in_check)
         })
     except Exception as e:
+        print(f"Error check_check: {e}")
         return jsonify({"error": str(e)}), 400
 
 if __name__ == '__main__':
+    # host 0.0.0.0 agar bisa diakses dari browser HP via IP lokal WiFi
     app.run(host='0.0.0.0', port=5000, debug=True)
