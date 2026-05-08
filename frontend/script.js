@@ -125,4 +125,4 @@ async function handleSquareClick(r, c) {
     }
 }
 
-renderBoard();
+renderBoard()
