@@ -5,6 +5,7 @@ const infoBox = document.getElementById('info');
 let selectedSquare = null;
 let turn = 'W';
 
+// Inisialisasi posisi awal papan
 const pieces = [
     ['r','n','b','q','k','b','n','r'],
     ['p','p','p','p','p','p','p','p'],
@@ -23,17 +24,21 @@ const pieceIcons = {
 
 function renderBoard() {
     boardElement.innerHTML = '';
-    infoBox.style.borderBottom = `4px solid ${turn === 'W' ? '#f0d9b5' : '#b58863'}`;
+    // Indikator giliran pada border bawah box info
+    infoBox.style.borderBottom = `6px solid ${turn === 'W' ? '#f0d9b5' : '#b58863'}`;
     
     for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
             const square = document.createElement('div');
+            
+            // Logika (r + c) % 2 menjamin pola selang-seling yang benar
             const isWhite = (r + c) % 2 === 0;
             square.className = `square ${isWhite ? 'white' : 'black'}`;
             
             const piece = pieces[r][c];
             if (piece) square.innerText = pieceIcons[piece];
             
+            // Highlight kotak yang sedang dipilih
             if (selectedSquare && selectedSquare.r === r && selectedSquare.c === c) {
                 square.classList.add('selected');
             }
@@ -47,6 +52,7 @@ function renderBoard() {
 async function handleSquareClick(r, c) {
     const targetPiece = pieces[r][c];
 
+    // --- 1. PROSES MEMILIH BIDAK ---
     if (!selectedSquare) {
         if (targetPiece) {
             const isWhite = targetPiece === targetPiece.toUpperCase();
@@ -56,12 +62,14 @@ async function handleSquareClick(r, c) {
                 return;
             }
             selectedSquare = { r, c, piece: targetPiece };
-            statusElement.innerText = `Pilih tujuan untuk ${pieceIcons[targetPiece]}`;
+            statusElement.innerText = `Gerakkan ${pieceIcons[targetPiece]} ke...`;
             statusElement.style.color = "white";
             renderBoard();
         }
     } 
+    // --- 2. PROSES MENGGERAKKAN BIDAK ---
     else {
+        // Batal pilih jika klik kotak yang sama
         if (selectedSquare.r === r && selectedSquare.c === c) {
             selectedSquare = null;
             statusElement.innerText = `Giliran: ${turn === 'W' ? 'PUTIH' : 'HITAM'}`;
@@ -71,6 +79,7 @@ async function handleSquareClick(r, c) {
         }
 
         try {
+            // Konversi papan ke string 64 karakter untuk backend
             const boardString = pieces.flat().map(p => p === '' ? ' ' : p).join('');
             const url = `http://localhost:5000/validate?piece=${selectedSquare.piece}&x1=${selectedSquare.r}&y1=${selectedSquare.c}&x2=${r}&y2=${c}&target=${targetPiece || ' '}&board=${encodeURIComponent(boardString)}`;
             
@@ -80,27 +89,27 @@ async function handleSquareClick(r, c) {
             if (data.valid) {
                 let movingPiece = selectedSquare.piece;
 
-                // --- LOGIKA PROMOSI PION ---
+                // --- FITUR PROMOSI PION ---
                 if ((movingPiece === 'P' && r === 0) || (movingPiece === 'p' && r === 7)) {
                     const choice = prompt("Pion Promosi! Ketik: Q (Menteri), R (Benteng), B (Gajah), N (Kuda)", "Q");
                     const pChar = (choice || "Q").toUpperCase()[0];
                     
-                    // Validasi input user, default ke Queen jika asal ketik
                     const validPromotions = ['Q', 'R', 'B', 'N'];
                     const finalChar = validPromotions.includes(pChar) ? pChar : 'Q';
                     
-                    // Sesuaikan case (Besar untuk Putih, Kecil untuk Hitam)
+                    // Putih pakai Uppercase, Hitam pakai Lowercase
                     movingPiece = (movingPiece === 'P') ? finalChar : finalChar.toLowerCase();
-                    alert(`Pion berubah menjadi ${pieceIcons[movingPiece]}!`);
                 }
 
-                // Update posisi bidak di papan
+                // Update array pieces (pindah posisi)
                 pieces[r][c] = movingPiece;
                 pieces[selectedSquare.r][selectedSquare.c] = '';
                 
-                const newBoardString = pieces.flat().map(p => p === '' ? ' ' : p).join('');
+                // Ganti giliran
                 turn = turn === 'W' ? 'B' : 'W';
 
+                // Cek apakah pemain setelahnya terkena SKAK
+                const newBoardString = pieces.flat().map(p => p === '' ? ' ' : p).join('');
                 const checkRes = await fetch(`http://localhost:5000/check_check?side=${turn}&board=${encodeURIComponent(newBoardString)}`);
                 const checkData = await checkRes.json();
 
@@ -112,17 +121,20 @@ async function handleSquareClick(r, c) {
                     statusElement.style.color = "white";
                 }
             } else {
+                // Pesan jika gerakan ilegal atau membiarkan Raja terancam
                 statusElement.innerText = `Ilegal! Raja terancam!`;
                 statusElement.style.color = "#ff4444";
             }
         } catch (err) {
-            statusElement.innerText = "Gagal terhubung ke server!";
+            statusElement.innerText = "Koneksi ke Server Terputus!";
             statusElement.style.color = "red";
         }
 
+        // Reset pilihan dan gambar ulang papan
         selectedSquare = null;
         renderBoard();
     }
 }
 
-renderBoard()
+// Jalankan fungsi awal
+renderBoard();
